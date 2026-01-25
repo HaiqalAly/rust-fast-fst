@@ -9,7 +9,12 @@ I've been playing around with the `fst` crate to handle sets of strings efficien
 
 ### Benchmarking & Performance
 *   **Compilation**: Interesting finding I found is that `Map` and `MapBuilder` seem to make the program compile faster, though the difference is negligible for this small experiment.
-*   **Speed**: Execution is instantaneous even with the overhead of file I/O.
-*   **Storage**: The resulting FST is incredibly compact. My 7 keys were compressed into just **64 bytes**.
-*   **Next Step**: I need to benchmark this against a full dictionary (100k+ words) to really see the magnitude of the compression and lookup speed advantages.
+*   **Speed**:
+    *   **Build Time**: Creating the FST from **103,495 words** took approximately **53ms**.
+    *   **Search Time**: Performing a Levenshtein search (distance 1) for "love" took around **335µs**.
+*   **Storage**: The compression is significant.
+    *   Original `dict.txt`: **977 KB**
+    *   Compressed `dict.fst`: **279 KB**
+    *   **Reduction**: The FST is ~29% of the original file size, achieving a **~71% reduction** in storage.
+*   **Next Step**: Maybe explore memory mapping specifically for larger datasets or try using streaming more extensively.
 

@@ -1,32 +1,49 @@
 use std::fs::File;
 use std::io;
+use std::io::{BufRead, BufReader};
 
 use fst::{IntoStreamer, Map, MapBuilder};
 use fst::automaton::Levenshtein;
 
 // Adapted from the fst crate examples by @burntsushi
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-  let path = "test.fst";
-  let writer = io::BufWriter::new(File::create(path)?);
-  let mut build = MapBuilder::new(writer)?;
-  let mut keys = vec!["fa", "fo", "fob", "focus", "foo", "food", "foul"];
+  let start_build = std::time::Instant::now();
+  build_fst("dict.txt", "dict.fst")?;
+  let duration_build = start_build.elapsed();
+  println!("Time to build: {:?}", duration_build);
+
+  let data = std::fs::read("dict.fst")?;
+  let map = Map::new(data)?;
+
+  let start_search = std::time::Instant::now();
+  let lev = Levenshtein::new("love", 1)?;
+  let stream = map.search(lev).into_stream();
+  let matches = stream.into_str_keys()?;
+  let duration_search = start_search.elapsed();
+
+  println!("Time to search: {:?}", duration_search);
+  println!("{:#?}", matches);
+  Ok(())
+}
+
+fn build_fst(input_path: &str, output_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+  let file  = File::open(input_path)?;
+  let reader = BufReader::new(file).lines();
+
+  let mut keys: Vec<String> = vec![];
+  for line in reader {
+    let line = line?;
+    keys.push(line);
+  }
   keys.sort();
+
+  let writer = io::BufWriter::new(File::create(output_path)?);
+  let mut build = MapBuilder::new(writer)?;
 
   for key in keys {
     build.insert(key, 0)?;
   }
 
   build.finish()?;
-
-  let data = std::fs::read(path)?;
-  let set = Map::new(data)?;
-  let lev = Levenshtein::new("foo", 2)?;
-
-  let stream = set.search(lev).into_stream();
-
-  let keys = stream.into_str_keys()?;
-  print!("{:#?}", keys);
-
-  assert_eq!(keys, vec!["fa", "fo", "fob", "foo", "food", "foul"]);
   Ok(())
 }
