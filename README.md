@@ -8,13 +8,16 @@ I've been playing around with the `fst` crate to handle sets of strings efficien
 3.  **Map vs Set**: I switched to using `Map` instead of `Set`, associating a value with each key (currently just `0`).
 
 ### Benchmarking & Performance
-*   **Compilation**: Interesting finding I found is that `Map` and `MapBuilder` seem to make the program compile faster, though the difference is negligible for this small experiment.
+*   **Compilation**: Interesting finding I found is that `Map` and `MapBuilder` seem to make the program compile faster, though the difference is negligible for this small experiment. I was probably spouting nonsense though.
 *   **Speed**:
     *   **Build Time**: Creating the FST from **103,495 words** took approximately **53ms**.
-    *   **Search Time**: Performing a Levenshtein search (distance 1) for "love" took around **335µs**.
+    *   **Search Time (Heap/fs::read)**: ~335µs. (Fastest, pre-loaded).
+    *   **Search Time (Mmap)**: ~360µs. (Slightly slower due to page faults).
 *   **Storage**: The compression is significant.
     *   Original `dict.txt`: **977 KB**
     *   Compressed `dict.fst`: **279 KB**
     *   **Reduction**: The FST is ~29% of the original file size, achieving a **~71% reduction** in storage.
-*   **Next Step**: Maybe explore memory mapping specifically for larger datasets or try using streaming more extensively.
-
+*   **Memory Mapping (`memmap2`) vs `fs::read`**:
+    *   **Result**: The memory mapped search was marginally slower (~25µs difference) for this small ~279KB file.
+    *   **Reason**: `fs::read` loads the entire file into "hot" RAM immediately. `mmap` lazily loads pages on demand, incurring data access overhead (page faults) during the first search.
+    *   **Verdict**: `fs::read` wins for small dictionaries. `mmap` is essential for massive datasets (GBs) where loading the whole file is impossible or startup time is critical.

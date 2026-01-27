@@ -4,16 +4,18 @@ use std::io::{BufRead, BufReader};
 
 use fst::{IntoStreamer, Map, MapBuilder};
 use fst::automaton::Levenshtein;
+use memmap2::Mmap;
 
-// Adapted from the fst crate examples by @burntsushi
+// Adapted and built upon from the fst crate examples by the Legendary @burntsushi
 fn main() -> Result<(), Box<dyn std::error::Error>> {
   let start_build = std::time::Instant::now();
   build_fst("dict.txt", "dict.fst")?;
   let duration_build = start_build.elapsed();
   println!("Time to build: {:?}", duration_build);
 
-  let data = std::fs::read("dict.fst")?;
-  let map = Map::new(data)?;
+  let data = std::fs::File::open("dict.fst")?;
+  let mmap = unsafe { Mmap::map(&data)? };
+  let map = Map::new(mmap)?;
 
   let start_search = std::time::Instant::now();
   let lev = Levenshtein::new("love", 1)?;
