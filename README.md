@@ -1,8 +1,11 @@
 # Rust FST Experiment
 
+> Please keep in mind that I'm still learning and at the very beginning. Expect some bugs, inefficiencies, or straight-up inaccuracies and nonsense I was about to spout in this README.
+
 A personal exploration of the **[fst](https://github.com/BurntSushi/fst)** crate in Rust, experimenting with efficient string (set/map) storage and fuzzy searching capabilities.
 
-This project demonstrates building a Finite State Transducer (FST) from a dictionary file and performing interactive fuzzy searches using Levenshtein distance.
+This experiment demonstrates building a Finite State Transducer (FST) from a dictionary file and performing interactive fuzzy searches using Levenshtein distance.
+
 
 ## Usage
 
@@ -47,8 +50,20 @@ Benchmarks revealed a massive discrepancy between manual interactive searches an
     *   *Note*: This higher latency is due to CPU frequency scaling (Cold Start) and wake-up latency when typing manually.
 *   **Search (Piped / Warm)**: **~250µs - 370µs**.
     *   *Note*: This represents the true performance when the CPU is "warm", achieved by piping input (`printf | cargo run`). e.g, `printf "love\n#q" | cargo run --release`
-
 *   **Insight**: The slowness in the REPL is **not** the FST traversal (which is < 0.4ms), but rather the **DFA Construction** (~500µs) and system wake-up overhead.
+
+### Incremental Build Optimization
+Implemented a "lazy" build system that checks file modification timestamps (similar to `make`) before rebuilding the FST.
+
+*   **Logic**: Comparing `mtime` of `dict.txt` vs `dict.fst`.
+*   **Results** (Debug Profile):
+    *   **Fresh Build**: ~352ms
+    *   **Cached Startup**: **~8.5µs** (No build performed)
+    *   **Speedup**: ~41,000x faster startup.
+*   **Results** (Release Profile):
+    *   **Fresh Build**: ~46.5ms
+    *   **Cached Startup**: **~7.2µs**
+    *   **Speedup**: Even with optimized builds, skipping the work is ~6,400x faster.
 
 ### Memory Mapping Strategy
 *   **fs::read (Heap)**: Slightly faster (~335µs) for small files because it pre-loads everything into RAM.

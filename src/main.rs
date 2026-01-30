@@ -1,4 +1,6 @@
+use std::fs;
 use std::io::{self, Write};
+use std::path::Path;
 
 use fst::automaton::Levenshtein;
 use fst::{IntoStreamer, Map};
@@ -9,7 +11,28 @@ use build_fst::build_fst;
 // Adapted and built upon from the fst crate examples by the Legendary @burntsushi
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start_build = std::time::Instant::now();
-    build_fst("dict.txt", "dict.fst")?;
+
+    let fst_path = Path::new("dict.fst");
+    let txt_path = Path::new("dict.txt");
+
+    let mut should_build = !fst_path.exists();
+
+    if !should_build {
+      let fst_metadata = fs::metadata(fst_path)?;
+      let txt_metadata = fs::metadata(txt_path)?;
+
+      let fst_time = fst_metadata.modified()?;
+      let txt_time = txt_metadata.modified()?;
+
+      if txt_time > fst_time {
+        should_build = true;
+      }
+    }
+
+    if should_build {
+      build_fst(txt_path.to_str().expect("something's wrong but idk what it is!"), fst_path.to_str().expect("something's wrong but idk what it is!"))?;
+    }
+
     let duration_build = start_build.elapsed();
     println!("Time to build: {:?}", duration_build);
 
