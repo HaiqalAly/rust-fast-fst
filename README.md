@@ -46,10 +46,10 @@ FSTs provide significant compression over raw text.
 Benchmarks revealed a massive discrepancy between manual interactive searches and piped/batched searches.
 
 *   **Build Time**: **~53ms** to process 103,495 words.
-*   **Search (Manual REPL)**: **~800µs - 1.2ms**. 
-    *   *Note*: This higher latency is due to CPU frequency scaling (Cold Start) and wake-up latency when typing manually.
+*   **Search (Manual REPL)**: **~800µs - 1.2ms** (Balanced Mode) vs **~240µs - 560µs** (High Perf Mode).
+    *   *Note*: The higher latency is primarily due to CPU frequency scaling (Cold Start). In my experience, switching the OS to "High Performance" eliminates this governor latency, bringing manual search speeds closer to warm/piped performance.
 *   **Search (Piped / Warm)**: **~250µs - 370µs**.
-    *   *Note*: This represents the true performance when the CPU is "warm", achieved by piping input (`printf | cargo run`). e.g, `printf "love\n#q" | cargo run --release`
+    *   *Note*: This represents the true performance when the CPU is "warm", achieved by piping input (`printf | cargo run`) e.g, `printf "love\n#q" | cargo run --release`.
 *   **Insight**: The slowness in the REPL is **not** the FST traversal (which is < 0.4ms), but rather the **DFA Construction** (~500µs) and system wake-up overhead.
 
 ### Incremental Build Optimization
@@ -62,8 +62,8 @@ Implemented a "lazy" build system that checks file modification timestamps (simi
     *   **Speedup**: ~41,000x faster startup.
 *   **Results** (Release Profile):
     *   **Fresh Build**: ~46.5ms
-    *   **Cached Startup**: **~7.2µs**
-    *   **Speedup**: Even with optimized builds, skipping the work is ~6,400x faster.
+    *   **Cached Startup**: **~3.8µs** (High Perf) - **~7.2µs** (Balanced)
+    *   **Speedup**: Even with optimized builds, skipping the work is **~6,000x - 12,000x faster**.
 
 ### Memory Mapping Strategy
 *   **fs::read (Heap)**: Slightly faster (~335µs) for small files because it pre-loads everything into RAM.
