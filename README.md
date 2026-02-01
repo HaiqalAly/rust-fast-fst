@@ -11,6 +11,14 @@ This experiment demonstrates building a Finite State Transducer (FST) from a dic
 
 Ensure you have a `dict.txt` file in the root directory containing a list of words (one per line).
 
+**Important:** The dictionary must be strictly sorted by ASCII byte values (not case-insensitive dictionary order). Use this command to prepare your file:
+
+```bash
+export LC_ALL=C && sort dict.txt -o dict.txt
+```
+
+Then run the project:
+
 ```bash
 cargo run --release
 ```
@@ -61,9 +69,18 @@ Implemented a "lazy" build system that checks file modification timestamps (simi
     *   **Cached Startup**: **~8.5µs** (No build performed)
     *   **Speedup**: ~41,000x faster startup.
 *   **Results** (Release Profile):
-    *   **Fresh Build**: ~46.5ms
+    *   **Fresh Build**: ~36ms (Streaming) vs ~46.5ms (In-Memory Sort)
     *   **Cached Startup**: **~3.8µs** (High Perf) - **~7.2µs** (Balanced)
     *   **Speedup**: Even with optimized builds, skipping the work is **~6,000x - 12,000x faster**.
+
+### Streaming Build vs In-Memory Sort
+Switched from loading the entire dictionary into a `Vec<String>` to streaming lines directly from disk into the `MapBuilder`.
+
+*   **Logic**: Pre-sorting `dict.txt` using system `sort` (LC_ALL=C) allows O(1) memory usage during construction.
+*   **Memory Impact**:
+    *   **Old Way**: O(N) RAM usage. With 100MB text, it used ~100MB+ RAM to sort.
+    *   **New Way**: O(1) RAM usage. Uses practically zero memory regardless of file size.
+*   **Time Impact**: Build time dropped from **~46.5ms** to **~36.5ms** (~21% faster) by avoiding the overhead of allocating and moving 100k strings in Rust.
 
 ### Memory Mapping Strategy
 *   **fs::read (Heap)**: Slightly faster (~335µs) for small files because it pre-loads everything into RAM.
