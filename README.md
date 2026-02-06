@@ -4,6 +4,7 @@
 
 > **Note:** I'm still learning Rust! This project unexpectedly grew from a simple test script into a complex optimization experiment. The code definitely has bugs and inefficiencies, and some concepts here might be beyond my current understanding.
 
+![Benchmark repeat query](docs/repeat_query.png)<br>
 ## Usage
 
 1.  **Prepare Dictionary:** Input must be strictly sorted by ASCII byte values.
