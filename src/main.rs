@@ -8,6 +8,9 @@ use search::search_fn;
 
 // Adapted and built upon from the fst crate examples by the Legendary @burntsushi
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(debug_assertions)]
+    println!("\x1b[33mWarning: Running in DEBUG mode. Performance will be slow. Use --release for benchmarks.\x1b[0m");
+
     let start_build = std::time::Instant::now();
 
     let fst_path = Path::new("dict.fst");
