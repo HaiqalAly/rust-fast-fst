@@ -5,6 +5,9 @@
 > **Note:** I'm still learning Rust. This project unexpectedly grew from a simple test script into a complex optimization experiment. The code definitely has bugs and inefficiencies, and some concepts here might be beyond my current understanding.
 
 ![Benchmark repeat query](docs/query.png)<br>
+
+---
+
 ## Usage
 
 1.  **Prepare Dictionary:** Input must be strictly sorted by ASCII byte values.
@@ -20,6 +23,8 @@
     The interactive TUI will launch.
     *   **Type** to search instantly.
     *   **Esc** or **Ctrl+C** to exit.
+
+---
 
 ## Key Insights & Benchmarks
 
@@ -41,9 +46,12 @@
         *   Fresh Build: **~36ms** (Streaming) vs **~46.5ms** (Old In-Memory)
         *   Cached Startup: **~3.8µs** (High Perf) | **~7µs** (Balanced)
         *   Speedup: Even with optimized builds, skipping the work is **~10,000x** faster.
-*   **Search Latency:** This was tested on a laptop and the performance depends heavily on CPU power states:
-    *   **Balanced Mode:** ~700µs - 1ms.
-    *   **High Performance:** ~190µs - 350µs.
+*   **Search Latency (Criterion Benchmarks):**
+    *   **Using plotters backend** - Benchmarks ran on local machine.
+    *   **Exact Match ("apple"):** ~139 µs
+    *   **Fuzzy Match (Short "aple"):** ~129 µs
+    *   **Fuzzy Match (Long "interational"):** ~276 µs
+    *   **Note:** Real-world latency can vary (~700µs - 1ms on balanced power mode) vs (~190µs - 350µs on high performance).
 
 ### 3. Zero-RAM Construction
 *   **Streaming Build:** Switched from loading `Vec<String>` to streaming lines directly from disk.
@@ -52,7 +60,9 @@
 
 ### 4. Smart Search Features
 *   **Weighted Ranking:** Modified to support `word,score` pairs. Results are ranked by: **Exact Match > High Score > Alphabetical**.
-*   **Fuzzy Search:** `Levenshtein` distance 1 is instant (**~190µs** - **300µs**). Distance 2 is exponential (**~1.55ms**).
+*   **Fuzzy Search:** `Levenshtein` distance 1 is instant (**~129µs** - **276µs**). Distance 2 is exponential (**~1.55ms**).
+
+---
 
 ## Known Limitation
 
