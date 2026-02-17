@@ -48,9 +48,9 @@
         *   Speedup: Even with optimized builds, skipping the work is **~10,000x** faster.
 *   **Search Latency (Criterion Benchmarks):**
     *   **Using plotters backend** - Benchmarks ran on local machine.
-    *   **Exact Match ("apple"):** ~139 µs
-    *   **Fuzzy Match (Short "aple"):** ~129 µs
-    *   **Fuzzy Match (Long "interational"):** ~276 µs
+    *   **Exact Match ("apple"):** ~113 µs
+    *   **Fuzzy Match (Short "aple"):** ~114 µs
+    *   **Fuzzy Match (Long "interational"):** ~231 µs
     *   **Note:** Real-world latency can vary (~700µs - 1ms on balanced power mode) vs (~190µs - 350µs on high performance).
 
 ### 3. Zero-RAM Construction

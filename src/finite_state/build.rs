@@ -6,23 +6,32 @@ use fst::MapBuilder;
 
 pub fn build_fst(input_path: &str, output_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let file = File::open(input_path)?;
+    let mut reader = BufReader::new(file);
+    let mut line = String::new();
 
     let writer = io::BufWriter::new(File::create(output_path)?);
     let mut build = MapBuilder::new(writer)?;
-    let reader = BufReader::new(file).lines();
 
-    // Line by line iteration
-    for line in reader {
-        let line = line?;
-        let mut key = line.as_str();
-        let mut value = 0;
+    while reader.read_line(&mut line)? > 0 {
+        {
+            let trimmed = line.trim();
+            if trimmed.is_empty() { 
+                line.clear();
+                continue; 
+            }
 
-        // Parsing text logic
-        if let Some((word, weight)) = line.split_once(",") {
-            key = word.trim();
-            value = weight.trim().parse::<u64>().unwrap_or(0);
+            if let Some((word, weight_str)) = trimmed.split_once(',') {
+                let key = word.trim();
+                // Parse and insert only if valid
+                if let Ok(value) = weight_str.trim().parse::<u64>() {
+                    build.insert(key, value)?;
+                }
+            } else {
+                // Handle lines with no comma
+                build.insert(trimmed, 0)?;
+            }
         }
-        build.insert(key, value)?;
+        line.clear();
     }
 
     build.finish()?;
