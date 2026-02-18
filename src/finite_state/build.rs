@@ -15,9 +15,9 @@ pub fn build_fst(input_path: &str, output_path: &str) -> Result<(), Box<dyn std:
     while reader.read_line(&mut line)? > 0 {
         {
             let trimmed = line.trim();
-            if trimmed.is_empty() { 
+            if trimmed.is_empty() {
                 line.clear();
-                continue; 
+                continue;
             }
 
             if let Some((word, weight_str)) = trimmed.split_once(',') {

@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use rust_exp_fst::finite_state::search::Dictionary;
 
 fn benchmark_search(c: &mut Criterion) {
@@ -9,18 +9,14 @@ fn benchmark_search(c: &mut Criterion) {
     }
 
     let dict = Dictionary::new("dict.fst").expect("dict.fst failed to load");
-    
+
     let mut group = c.benchmark_group("search");
-    
+
     // Benchmark exact match
-    group.bench_function("search_exact_apple", |b| {
-        b.iter(|| dict.search("apple"))
-    });
+    group.bench_function("search_exact_apple", |b| b.iter(|| dict.search("apple")));
 
     // Benchmark fuzzy match (short)
-    group.bench_function("search_fuzzy_aple", |b| {
-        b.iter(|| dict.search("aple"))
-    });
+    group.bench_function("search_fuzzy_aple", |b| b.iter(|| dict.search("aple")));
 
     // Benchmark fuzzy match (longer word with typo)
     group.bench_function("search_fuzzy_interational", |b| {

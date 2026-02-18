@@ -57,27 +57,28 @@ impl Dictionary {
         let start_search = Instant::now();
         // If query is short, maybe use strict Levenshtein or just prefix?
         // Using Levenshtein 1 for now as per original code
-        let lev = Levenshtein::new(query.to_lowercase().as_str(), 1)?;
+        let query_lower = query.to_lowercase();
+        let lev = Levenshtein::new(&query_lower, 1)?;
         let mut stream = self.map.search(lev).into_stream();
 
-        let mut heap = BinaryHeap::with_capacity(11);
-        let target_bytes = query.to_lowercase().into_bytes();
+        let mut heap = BinaryHeap::with_capacity(10);
+        let target_bytes = query_lower.into_bytes();
 
-        // Only keep top 10 and pop the worst one if hit 11
+        // Only keep top 10; skip items that are worse than the current worst in the heap
         while let Some((key_bytes, value)) = stream.next() {
             let is_exact = key_bytes == target_bytes;
 
-            // Constructing the struct
             let res = SearchResult {
                 key: key_bytes.to_vec(),
                 value,
                 is_exact,
             };
 
-            heap.push(res);
-
-            if heap.len() > 10 {
+            if heap.len() < 10 {
+                heap.push(res);
+            } else if heap.peek().is_none_or(|worst| res < *worst) {
                 heap.pop();
+                heap.push(res);
             }
         }
 
